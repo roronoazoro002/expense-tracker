@@ -4,12 +4,19 @@ from typing import List
 
 from app.database import engine, get_db, Base
 from app import models, schemas
-
+from fastapi.middleware.cors import CORSMiddleware
 # Creates all tables defined in models.py, if they don't already exist.
 # Later we'll switch to Alembic migrations for changes, but this is fine to start.
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Expense Tracker API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
