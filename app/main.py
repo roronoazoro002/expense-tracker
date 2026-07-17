@@ -73,3 +73,12 @@ def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_
 @app.get("/categories", response_model=List[schemas.CategoryOut])
 def list_categories(db: Session = Depends(get_db)):
     return db.query(models.Category).all()
+
+@app.delete("/transactions/{id}")
+def delete_transaction(id: int, db: Session = Depends(get_db)):
+    transaction = db.query(models.Transaction).filter(models.Transaction.id == id).first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    db.delete(transaction)
+    db.commit()
+    return {"message": "Transaction deleted successfully"}
