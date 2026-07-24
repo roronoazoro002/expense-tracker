@@ -82,3 +82,21 @@ def delete_transaction(id: int, db: Session = Depends(get_db)):
     db.delete(transaction)
     db.commit()
     return {"message": "Transaction deleted successfully"}
+
+@app.post("/categories/upsert", response_model=schemas.CategoryOut)
+def upsert_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
+    # Check if category with this name already exists
+    existing = db.query(models.Category).filter(
+        models.Category.name == category.name
+    ).first()
+    
+    # If it exists, return it as-is
+    if existing:
+        return existing
+    
+    # If not, create it
+    db_category = models.Category(**category.model_dump())
+    db.add(db_category)
+    db.commit()
+    db.refresh(db_category)
+    return db_category
