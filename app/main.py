@@ -100,3 +100,32 @@ def upsert_category(category: schemas.CategoryCreate, db: Session = Depends(get_
     db.commit()
     db.refresh(db_category)
     return db_category
+
+@app.put("/transactions/{id}", response_model=schemas.TransactionOut)
+def update_transaction(id: int, transaction: schemas.TransactionCreate, db: Session = Depends(get_db)):
+    db_transaction = db.query(models.Transaction).filter(models.Transaction.id == id).first()
+    if not db_transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    # update the header fields
+    db_transaction.date = transaction.date
+    db_transaction.description = transaction.description
+    db_transaction.account = transaction.account
+
+    #Delete existing items and replace with new ones
+    for item in db_transaction.items:
+        db.delete(item)
+
+    #Add new items
+    for item in transaction.items:
+        db_transaction.items.append(
+            models.TransactionItem(
+                category_id = item.category_id,
+                amount = item.amount,
+                notes = item.notes,
+            )
+        )
+
+    db.commit()
+    db.refresh(db_transaction)
+    return db_transaction
